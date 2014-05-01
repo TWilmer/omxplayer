@@ -128,6 +128,7 @@ VC_LIBS="-L$VCDIR/lib -lvchiq_arm -lvcos -lWFC -lGLESv2 -lopenmaxil  -lbcm_host 
 AC_SUBST(VC_CFLAGS)
 AC_SUBST(VC_LIBS)
 AC_SUBST(VCDIR)
+export CPPFLAGS="$CPPFLAGS $VC_CFLAGS"
 AC_CHECK_HEADERS(bcm_host.h, [] ,  AC_MSG_ERROR("--with-vc points to wrong directory"))
 
 
