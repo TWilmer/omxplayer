@@ -17,6 +17,7 @@ omxplayer_bin_SOURCES = linux/XMemUtils.cpp \
                 linux/RBP.cpp \
                 OMXThread.cpp \
                 OMXReader.cpp \
+		OMXDvdPlayer.cpp \
                 OMXStreamInfo.cpp \
                 OMXAudioCodecOMX.cpp \
                 OMXCore.cpp \
