@@ -111,6 +111,14 @@ static int interrupt_cb(void *unused)
   return ret;
 }
 
+static int dvdnav_file_read(void *h, uint8_t* buf, int size)
+{
+  OMXDvdPlayer *reader =(OMXDvdPlayer*) h;
+  int ret = reader->Read(buf,size);
+  printf("Try DVDRead of %d got %d\n", size, ret);
+  return ret;
+}
+
 static int dvd_file_read(void *h, uint8_t* buf, int size)
 {
   RESET_TIMEOUT(1);
@@ -169,6 +177,44 @@ bool OMXReader::Open(std::string filename, bool dump_format, bool live /* =false
   if(m_filename.substr(0, 8) == "shout://" )
     m_filename.replace(0, 8, "http://");
 
+   
+  if(m_filename.substr(0,6) == "dvd://" )
+  {
+    std::string dvdFilename=m_filename.substr(6,m_filename.size());
+    CLog::Log(LOGDEBUG, "COMXPlayer::OpenFile - open dvd %s ", dvdFilename.c_str());
+    printf("DVD %s\n", dvdFilename.c_str());
+    unique_ptr<OMXDvdPlayer> newDvdPlayer ( new OMXDvdPlayer(dvdFilename));
+    m_DvdPlayer = std::move(newDvdPlayer);
+    buffer = (unsigned char*)m_dllAvUtil.av_malloc(FFMPEG_FILE_BUFFER_SIZE);
+    m_ioContext = m_dllAvFormat.avio_alloc_context(buffer, FFMPEG_FILE_BUFFER_SIZE, 0, &*m_DvdPlayer, dvdnav_file_read, NULL, NULL);
+
+    m_ioContext->seekable = 0; // seek should be done by the dvdnav library
+
+    m_dllAvFormat.av_probe_input_buffer(m_ioContext, &iformat, m_filename.c_str(), NULL, 0, 0);
+
+    if(!iformat)
+    {
+      CLog::Log(LOGERROR, "COMXPlayer::OpenFile - av_probe_input_buffer %s ", m_filename.c_str());
+      Close();
+      return false;
+    }
+
+
+    m_pFormatContext->pb = m_ioContext;
+    result = m_dllAvFormat.avformat_open_input(&m_pFormatContext, m_filename.c_str(), iformat, NULL);
+    if(result < 0)
+    {
+      Close();
+      return false;
+    }
+
+
+
+
+    printf("OK for now\n");
+    exit(0);
+  }
+  else 
   if(m_filename.substr(0,6) == "mms://" || m_filename.substr(0,7) == "mmsh://" || m_filename.substr(0,7) == "mmst://" || m_filename.substr(0,7) == "mmsu://" ||
       m_filename.substr(0,7) == "http://" || m_filename.substr(0,8) == "https://" ||
       m_filename.substr(0,7) == "rtmp://" || m_filename.substr(0,6) == "udp://" ||
