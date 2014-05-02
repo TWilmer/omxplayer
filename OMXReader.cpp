@@ -115,7 +115,6 @@ static int dvdnav_file_read(void *h, uint8_t* buf, int size)
 {
   OMXDvdPlayer *reader =(OMXDvdPlayer*) h;
   int ret = reader->Read(buf,size);
-  printf("Try DVDRead of %d got %d\n", size, ret);
   return ret;
 }
 
@@ -182,7 +181,6 @@ bool OMXReader::Open(std::string filename, bool dump_format, bool live /* =false
   {
     std::string dvdFilename=m_filename.substr(6,m_filename.size());
     CLog::Log(LOGDEBUG, "COMXPlayer::OpenFile - open dvd %s ", dvdFilename.c_str());
-    printf("DVD %s\n", dvdFilename.c_str());
     unique_ptr<OMXDvdPlayer> newDvdPlayer ( new OMXDvdPlayer(dvdFilename));
     m_DvdPlayer = std::move(newDvdPlayer);
     buffer = (unsigned char*)m_dllAvUtil.av_malloc(FFMPEG_FILE_BUFFER_SIZE);
@@ -211,8 +209,6 @@ bool OMXReader::Open(std::string filename, bool dump_format, bool live /* =false
 
 
 
-    printf("OK for now\n");
-    exit(0);
   }
   else 
   if(m_filename.substr(0,6) == "mms://" || m_filename.substr(0,7) == "mmsh://" || m_filename.substr(0,7) == "mmst://" || m_filename.substr(0,7) == "mmsu://" ||

@@ -45,7 +45,7 @@ ffmpeg.configure.cross: ffmpeg.checkout
 			--enable-armv6 \
 			--enable-hardcoded-tables \
 			--disable-runtime-cpudetect \
-			--disable-debug \
+			--enable-debug \
 			--disable-crystalhd \
 			--disable-decoder=h264_vda \
 			--disable-decoder=h264_crystalhd \
@@ -273,7 +273,7 @@ ffmpeg.configure: ffmpeg.checkout
 			--enable-armv6 \
 			--enable-hardcoded-tables \
 			--disable-runtime-cpudetect \
-			--disable-debug \
+			--enable-debug \
 			--disable-crystalhd \
 			--disable-decoder=h264_vda \
 			--disable-decoder=h264_crystalhd \
@@ -476,5 +476,4 @@ ffmpeg.checkout:
 
 ffmpeg.install: ffmpeg.configure
 	cd ffmpeg; make -j1  install
-	strip ffmpeg_compiled/lib/*.so
 

@@ -37,7 +37,6 @@ OMXDvdPlayer::OMXDvdPlayer(std::string filename)
 , m_open(false)
 {
   /* open dvdnav handle */
-  printf("Opening DVD...\n");
   if (dvdnav_open(&m_dvdnav, filename.c_str()) != DVDNAV_STATUS_OK) {
     printf("Error on dvdnav_open\n");
     m_open=false;
@@ -78,38 +77,37 @@ OMXDvdPlayer::OMXDvdPlayer(std::string filename)
 int OMXDvdPlayer::Read(uint8_t* buf, int size)
 {
   bool finished=false;
-  printf("Reading..\n");
+  int c=0;
+  if(size % 2048 !=0)
+  {
+    printf("Error odd buffer size %d\n", size);
+    return -1;
+  }
+  int d=size/2048;
+
   while(!finished)
   {
   uint8_t mem[DVD_VIDEO_LB_LEN];
   int result,  event, len;
-  result = dvdnav_get_next_block(m_dvdnav, mem, &event, &len);
+  result = dvdnav_get_next_block(m_dvdnav, buf+c*2048, &event, &len);
 
   if (result == DVDNAV_STATUS_ERR) {
       printf("Error getting next block: %s\n", dvdnav_err_to_string(m_dvdnav));
       return -1;
    }
-    printf("Got data backage\n");
    
     switch (event) {
     case DVDNAV_BLOCK_OK:
     {
 
-    printf("Got data DATA\n");
-      int toCopy=0;
-      if(len<=size)
-        toCopy=size;
-      else {
-        printf("Output buffer too small, got %d buffer, but have %d\n", size,len);
-        toCopy=size;
-      }
-    memcpy(buf,mem,toCopy); // I don't like this use less mem copy... but what todo? We don't know the size of what dvdnav will present us
-    return toCopy;
+      c++;
+      if(d==c)
+        return size;
    }
   case DVDNAV_STOP:
       /* Playback should end here. */
       {
-        finished = true;
+        // finished = true;
       }
       break;
     case DVDNAV_STILL_FRAME:
@@ -151,6 +149,6 @@ int OMXDvdPlayer::Read(uint8_t* buf, int size)
       printf("Not handled event yet %d\n", event);
    }
    }
-   return -1;
+   return 0;
 }
 
