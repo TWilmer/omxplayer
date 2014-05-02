@@ -73,6 +73,13 @@ OMXDvdPlayer::OMXDvdPlayer(std::string filename)
   m_open=true;
 }
 
+void OMXDvdPlayer::pressButton()
+{
+ pci_t *pci;
+ pci =dvdnav_get_current_nav_pci(m_dvdnav);
+ dvdnav_button_activate(m_dvdnav, pci);
+
+}
 
 int OMXDvdPlayer::Read(uint8_t* buf, int size)
 {
@@ -87,7 +94,6 @@ int OMXDvdPlayer::Read(uint8_t* buf, int size)
 
   while(!finished)
   {
-  uint8_t mem[DVD_VIDEO_LB_LEN];
   int result,  event, len;
   result = dvdnav_get_next_block(m_dvdnav, buf+c*2048, &event, &len);
 
@@ -145,9 +151,38 @@ int OMXDvdPlayer::Read(uint8_t* buf, int size)
       break;
 
 
+   case DVDNAV_NAV_PACKET:
+    {
+        pci_t *pci;
+        pci = dvdnav_get_current_nav_pci(m_dvdnav);
+        dvdnav_get_current_nav_dsi(m_dvdnav);
+
+        if(pci->hli.hl_gi.btn_ns > 0) {
+          int button;
+
+          printf("Found %i DVD menu buttons...\n", pci->hli.hl_gi.btn_ns);
+
+          for (button = 0; button < pci->hli.hl_gi.btn_ns; button++) {
+            btni_t *btni = &(pci->hli.btnit[button]);
+            printf("Button %i top-left @ (%i,%i), bottom-right @ (%i,%i)\n",
+                    button + 1, btni->x_start, btni->y_start,
+                    btni->x_end, btni->y_end);
+          }
+
+          button = 0;
+	 button=1;
+          printf("Selecting button %i...\n", button);
+          /* This is the point where applications with fifos have to hand in a NAV packet
+           * which has traveled through the fifos. See the notes above. */
+          dvdnav_button_select_and_activate(m_dvdnav, pci, button);
+        }
+
+     }
+      break;
    default:
       printf("Not handled event yet %d\n", event);
    }
+
    }
    return 0;
 }
